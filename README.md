@@ -42,7 +42,7 @@ Along with exploring state-of-the-art CNN models for classification and localiza
 		jupyter notebook dog_app.ipynb
 	```
 
-### Log Book
+## Log Book
 
 Let's describe this journey.  
 
@@ -58,7 +58,7 @@ Then, using transfer learning, I could take advantage of a model already *sees*,
 With the very same sets preparation, it took me about half an hour to choose and implement the model, trained it for only 5 epochs and get >80% accuaracy. 
 
 
-#### Standing on the shoulders of giants
+## Standing on the shoulders of giants
 There are a lot of very inspiring works already done, that I could read and take inspirations from, to quote a few: 
 **Medium paper tackling the very same exercise**
 * https://towardsdatascience.com/dog-breed-classification-hands-on-approach-b5e4f88c333e
@@ -78,7 +78,7 @@ There are a lot of very inspiring works already done, that I could read and take
 I did not really work for me as good as I expected but I took time to do a 'POC' using Siamese network to teach a network to estimate the dissimilarity between two dog pictures. I certainly neeed to refine my architecture, but I took so long to train and test that I did not pursued in that direction... I'll put the exploratory notebook in this repository though. 
 * https://www.google.com/search?q=siamese+network&oq=Siamesee&aqs=chrome.1.69i57j0l5.2017j0j4&sourceid=chrome&ie=UTF-8
 
-#### Take away
+## Take away
 If I were to build a model from scratch, I'll certainly be carefull on the followings, that helped me fight against overfitting: 
 - **Dropout:** remove activations at random during training in order to regularize the model
 - **Data augmentation:** modify model inputs during training in order to effectively increase data size
@@ -87,7 +87,7 @@ If I were to build a model from scratch, I'll certainly be carefull on the follo
 - **Optimizer & Batch size**: I first added a momentum on my SGD optimizer, to accelerate the training, but I had trouble to adjust together (batch size, learning rate, momentum). I then readed about Adam Optimizer that is adaptative, which indeed was easyer to use. Also, I started with batch size of 64, but the variability on losses across epochs was large, as if the model learned too much before validation check, so I decreased batch size to 20. 
 Something that would worse testing that would be instead of Adam, try Optimgrad or SGD with nesterov momentum (need to choose parameters). 
 
-### The Road Ahead
+## The Road Ahead
 
 We break the notebook into separate steps. 
 
@@ -101,7 +101,7 @@ We break the notebook into separate steps.
 * [Step 7](#step7): Compare scratch and transfer results
 
 ---
-# Let's get our feet wet!
+## Let's get our feet wet!
 ---
 	
 ```
