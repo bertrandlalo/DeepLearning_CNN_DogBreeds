@@ -2,7 +2,7 @@
 <html>
 <head><meta charset="utf-8" />
 
-<title>dog_app_vClean</title>
+<title>dog_app</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
@@ -16353,7 +16353,7 @@ div#notebook {
 <h3 id="Why-We're-Here">Why We're Here<a class="anchor-link" href="#Why-We're-Here">&#182;</a></h3><p>As part of Udacity online course on Deep Learning, this notebook is my first 'hands-on' exercise to use convolutionnal neural networks to classify images.</p>
 <p>I'm tackling the very classic problem of dog classification. The goal is to build a model capable of doing breed classification of a dog by just “looking” into its image.</p>
 <p>If a dog is detected in the image, the app should provide an estimate of the dog's breed.  If it's a human, it will provide an estimate of the dog breed that is most resembling.</p>
-<p><img src="images/sample_dog_output.png" alt="Sample Dog Output"></p>
+<p><img src="static/sample_dog_output.png" alt="Sample Dog Output"></p>
 <p>In this real-world setting, I needed to piece together a series of models to perform different tasks; for instance, the algorithm that detects humans in an image will be different from the CNN that infers dog breed.</p>
 <h3 id="Log-Book">Log Book<a class="anchor-link" href="#Log-Book">&#182;</a></h3><p>Let's describe this journey.</p>
 <p>I learned that the practice is far ahead of the theory in deep learning :)</p>
@@ -17353,7 +17353,21 @@ dtype: float64
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Model-Architecture">Model Architecture<a class="anchor-link" href="#Model-Architecture">&#182;</a></h3><p>Create a CNN to classify dog breed.  Use the template in the code cell below.</p>
+<h3 id="Model-Architecture">Model Architecture<a class="anchor-link" href="#Model-Architecture">&#182;</a></h3><p><strong>Define helpers to avoid repeting always the same lines of code when defining the network.</strong></p>
+<p>In the cell bellow, I buid helpers to design a convolutionnal layer. Based on the litterature I read, and advices from experienced people, I tested different type of layers, from the simplest to the complex:</p>
+<ul>
+<li>basic: (Conv2d, ReLu activation) </li>
+<li>with batch norm: (Conv2d, Batch norm 2d,  ReLu activation)</li>
+<li>with batch norm and residual (using short-cuts to jump over some layers): 
+(Conv2d, ResBlock with batch norm,  ReLu activation)</li>
+</ul>
+<p>Each convolution has the following parameters:</p>
+<ul>
+<li>ni: nb of inputs</li>
+<li>nf: nb of outputs</li>
+<li>downsampling_method: stride or maxpool</li>
+<li>kernel_size: size of filter</li>
+</ul>
 
 </div>
 </div>
@@ -17415,6 +17429,35 @@ dtype: float64
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><strong>Create a CNN to classify dog breeds.</strong>
+Here, I create the network and keep the important architecture parameters in an object (this allows me to test many different architecture, just by changing this cell)</p>
+<p>Here, the network has 6 CNN layers (to build feature maps):</p>
+
+<pre><code>* FEATURES LAYERS: (input_depth, 16) (16,32) (32, 64) (64, 64) (64, 256) (256, 512)   
+
+</code></pre>
+<p>We choose a dropout probability of 0.25 that applies after each layer.</p>
+<p>The classifier has 2 fully connected layers:</p>
+
+<pre><code>* CLASSIF. LAYERS: 4*4*512 -&gt; 1330 -&gt; 133
+
+</code></pre>
+<p>The training params are:</p>
+
+<pre><code>* OPTIMIZER: ADAM 
+* LEARNING RATE: 1e-4
+* CRITERION: Cross Entropy Loss 
+* BATCH SIZE: 20
+
+</code></pre>
+<p>Each convolutional layer is of type RESIDUAL.</p>
+
+</div>
+</div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
@@ -17608,6 +17651,20 @@ dtype: float64
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><strong>Answer:</strong></p>
+<ul>
+<li><strong>DAY1:</strong> I started with a very basic network with 3 convolutionnal layers and one fully connected layer with 133 outputs and a batch size of 60, SGD optimizer with a learning rate between 1e-4 and 1e-1 and no momentum. The model would not learn more than 5 epochs. I did not even run the test, but I am pretty sure it would have failed badly under 1%. </li>
+<li><strong>DAY2</strong> I added more layers, still with this basic CNN and got no improvments.</li>
+<li><strong>DAY3</strong> From practice, back to the theory... I read a bunch of medium papers, looked at fast.ai courses and asked some advices around me. I learned that some medication against overfitting are: <ul>
+<li>MORE DROPOUT</li>
+<li>SLOWER LEARNING: decrease lr and/or batch size</li>
+<li>BATCH NORMALISATION
+So, I added dropout and batch normalisation. Because I was tired trying to custom learning rate and momentum together, I switched to ADAM optimizer, since it's adaptive (even id I also read that sometimes it's not very stable..). If I remember well, I went from like 5% to 15%. </li>
+</ul>
+</li>
+<li><strong>DAY4</strong> More reading.... At that time I discover <strong>RESIDUAL BLOCK</strong>, that basicaly takes short-cuts to jump over some layers. On fast.ai video, the guy says <em>'whatever your computer vision problem, try to add Residual Block, it's always be better'</em>. It convinced me 😊.</li>
+<li><strong>DAY5</strong> More reading... And I heared about <strong>SIAMESE NETWORKS</strong>, that aree networks able to estimate the dissimilarity between two inputs. I tried out some code that I found, made to detect patterns in MNIST dataset, that I adapted to my problem. My siamese network could give a similarity rating on a pair of dog images, that (empirically) was not that bad. But when I tried to classify the training images by computing the similarity matrix to ALL the train dataset, it took like forever and didn't give very good results... I certainly neeed to refine my architecture, but I took so long to train and test that I did not pursued in that direction... I'll put the exploratory notebook in this repository though.</li>
+<li><strong>DAY6</strong> back to DAY5 step, and cleanup the mess. Still, I'm a bit frustrated that my notebook cannot really learn and overfitts from the begining (validation losses order of magnitude is way greater than training losses). Maybe I should have added some more dogs, or some more images at all... </li>
+</ul>
 
 </div>
 </div>
@@ -17615,7 +17672,7 @@ dtype: float64
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Specify-Loss-Function-and-Optimizer">Specify Loss Function and Optimizer<a class="anchor-link" href="#Specify-Loss-Function-and-Optimizer">&#182;</a></h3><p>Use the next code cell to specify a <a href="http://pytorch.org/docs/stable/nn.html#loss-functions">loss function</a> and <a href="http://pytorch.org/docs/stable/optim.html">optimizer</a>.  Save the chosen loss function as <code>criterion_scratch</code>, and the optimizer as <code>optimizer_scratch</code> below.</p>
+<h3 id="Specify-Loss-Function-and-Optimizer">Specify Loss Function and Optimizer<a class="anchor-link" href="#Specify-Loss-Function-and-Optimizer">&#182;</a></h3><p>Specify a <a href="http://pytorch.org/docs/stable/nn.html#loss-functions">loss function</a> and <a href="http://pytorch.org/docs/stable/optim.html">optimizer</a>.</p>
 
 </div>
 </div>
@@ -17637,7 +17694,7 @@ dtype: float64
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Train-and-Validate-the-Model">Train and Validate the Model<a class="anchor-link" href="#Train-and-Validate-the-Model">&#182;</a></h3><p>Train and validate your model in the code cell below.  <a href="http://pytorch.org/docs/master/notes/serialization.html">Save the final model parameters</a> at filepath <code>'model_scratch.pt'</code>.</p>
+<h3 id="Train-and-Validate-the-Model">Train and Validate the Model<a class="anchor-link" href="#Train-and-Validate-the-Model">&#182;</a></h3><p>Train and validate the model.  <a href="http://pytorch.org/docs/master/notes/serialization.html">Save the final model parameters</a> at filepath <code>'model_scratch.pt'</code>.</p>
 
 </div>
 </div>
